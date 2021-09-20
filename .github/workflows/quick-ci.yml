@@ -19,7 +19,6 @@ jobs:
         find . -regex '.*\.\(cpp\|h\)'  -exec clang-format-12 -style=file -i -n -Werror {} +
 
   build:
-    needs: [lint]
     runs-on: ubuntu-20.04 
     env:
       CC: clang-12
