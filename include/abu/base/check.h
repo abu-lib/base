@@ -41,8 +41,8 @@ static constexpr assume_tag_t assume;
 static constexpr verify_tag_t verify;
 
 namespace details_ {
-inline void constexpr_check_failure(){};
-}
+inline void constexpr_check_failure() {}
+}  // namespace details_
 
 constexpr void check(
     ignore_tag_t,
