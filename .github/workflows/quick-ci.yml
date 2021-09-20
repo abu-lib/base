@@ -4,7 +4,7 @@ name: Quick-CI
 # - Only depends on tools already available in the available image.
 # - Early outs on lint failures
 # - Runs very liberally 
-on: [push, pull_request]
+on: [workflow_dispatch, pull_request]
 
 jobs:
   lint:
@@ -18,7 +18,7 @@ jobs:
         ls -la
         find . -regex '.*\.\(cpp\|h\)'  -exec clang-format-12 -style=file -i -n -Werror {} +
 
-  build:
+  smoke-test:
     runs-on: ubuntu-20.04 
     env:
       CC: clang-12
