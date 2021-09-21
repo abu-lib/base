@@ -5,8 +5,6 @@ on:
   workflow_dispatch: {}
   pull_request: {}
 
-concurrency: pr-${{ github.base_ref }}
-
 jobs:
   # stage 1: smoke tests
   # - Only depends on tools already available in the base image.
