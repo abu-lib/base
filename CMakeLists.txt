@@ -6,6 +6,8 @@ project(abu_base VERSION 0.1.0)
 # everything in that .cmake is meant to also be used by individual libraries.
 include(cmake/abu_lib.cmake)
 
+enable_testing()
+
 # CPP support library.
 abu_add_library(
   SRC

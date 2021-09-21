@@ -47,14 +47,14 @@ jobs:
     env:
       CC: clang-12
       CXX: clang++-12
-      
+
     steps:
       - uses: actions/checkout@v2
 
       - name: install dependencies
         run: |
-          apt install -y clang-tidy-12
-          update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-12 100
+          sudo apt install -y clang-tidy-12
+          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-12 100
 
       - name: Compute compile commands
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
