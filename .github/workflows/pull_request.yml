@@ -2,7 +2,7 @@ name: Pull Request Checks
 
 # Pipeline meant to run on pull-requests
 
-on: [pull_request]
+on: [workflow_dispatch, pull_request]
 
 jobs:
   # stage 1: smoke tests
@@ -72,4 +72,34 @@ jobs:
           find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p build {} +
 
   # stage 3: Validation
-  # Static analysis
+   build-and-test-ubuntu:
+    needs: static-analysis
+    runs-on: ubuntu-20.04 
+    container: ghcr.io/abu-lib/smoke-test-env:1.0.0
+
+    strategy:
+      matrix:
+        compiler: [{cc: gcc-11, cxx: g++11}, {cc: clang-12, cxx: clang++12}]
+        build_type: [Debug, Release]
+    
+    env:
+      CC: ${{matrix.compiler.cc}}
+      CXX: ${{matrix.compiler.cxx}}
+
+    steps:
+      - name: Set up GCC
+        if: ${{ matrix.compiler.cc == 'gcc-11' }}
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DABU_HEADER_CHECKS=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest
