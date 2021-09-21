@@ -62,10 +62,10 @@ jobs:
 
       - name: Normalize directory structure
         run: |
-          mkdir build/abu_header_checks 1>/dev/null 2>/dev/null
-          mkdir src 1>/dev/null 2>/dev/null
-          mkdir tests 1>/dev/null 2>/dev/null
-          mkdir benchmarks 1>/dev/null 2>/dev/null
+          mkdir build/abu_header_checks 1>/dev/null 2>/dev/null || true
+          mkdir src 1>/dev/null 2>/dev/null  || true
+          mkdir tests 1>/dev/null 2>/dev/null  || true
+          mkdir benchmarks 1>/dev/null 2>/dev/null  || true
 
       - name: Check with clang-tidy
         run: |  
