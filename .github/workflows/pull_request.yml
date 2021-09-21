@@ -60,14 +60,16 @@ jobs:
       - name: Compute compile commands
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
-      - name: Check with clang-tidy
+      - name: Normalize directory structure
         run: |
-          pwd
-          ls -la
-          find build/abu_header_checks -regex '.*\.\(cpp\)'
-          find src/ -regex '.*\.\(cpp\)'
-          find tests/ -regex '.*\.\(cpp\)'
-          find benchmark/ -regex '.*\.\(cpp\)'
+          mkdir build/abu_header_checks 1>/dev/null 2>/dev/null
+          mkdir src 1>/dev/null 2>/dev/null
+          mkdir tests 1>/dev/null 2>/dev/null
+          mkdir benchmarks 1>/dev/null 2>/dev/null
+
+      - name: Check with clang-tidy
+        run: |  
+          find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p bld {} +
 
   # stage 3: Validation
   # Static analysis
