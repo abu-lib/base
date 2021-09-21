@@ -80,7 +80,7 @@ jobs:
         compiler: [{cc: gcc-11, cxx: g++-11}, {cc: clang-12, cxx: clang++-12}]
         build_type: [Debug, Release]
     
-    name: "${{matrix.compiler.cxx}} - ${{matrix.build_type}}" 
+    name: "🐧 ${{matrix.compiler.cxx}} - ${{matrix.build_type}}" 
     env:
       CC: ${{matrix.compiler.cc}}
       CXX: ${{matrix.compiler.cxx}}
@@ -111,10 +111,39 @@ jobs:
 
     strategy:
       matrix:
-        compiler: [{cc: gcc-11, cxx: g++-11}, {cc: clang-12, cxx: clang++-12}]
+        compiler: [{cc: gcc-11, cxx: g++-11}, {cc: cc, cxx: c++}]
         build_type: [Debug, Release]
     
-    name: "${{matrix.compiler.cxx}} - ${{matrix.build_type}}" 
+    name: "🍎 ${{matrix.compiler.cxx}} - ${{matrix.build_type}}" 
+
+    env:
+      CC: ${{matrix.compiler.cc}}
+      CXX: ${{matrix.compiler.cxx}}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DABU_HEADER_CHECKS=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest
+
+  Windows:
+    needs: static-analysis
+    runs-on: windows-2019
+
+    strategy:
+      matrix:
+        toolset: [ClangCL, host=x64, host=x86]
+        arch: [Win32, x64]
+        build_type: [Debug, Release]
+
+    name: "💻 ${{matrix.compiler.cxx}} - ${{matrix.build_type}}" 
     
     env:
       CC: ${{matrix.compiler.cc}}
