@@ -15,20 +15,24 @@
 #include "abu/base.h"
 #include "gtest/gtest.h"
 
-using namespace abu;
+constexpr int expect_pass_val = 5;
+constexpr int expect_fail_val = expect_pass_val + 1;
+
+
+namespace {
 
 constexpr int foo_1(int x) {
-  abu::base::check(abu::base::ignore, x < 10);
+  abu::base::check(abu::base::ignore, x <= expect_pass_val);
   return x;
 }
 
 constexpr int foo_2(int x) {
-  abu::base::check(abu::base::assume, x < 10);
+  abu::base::check(abu::base::assume, x <= expect_pass_val);
   return x;
 }
 
 constexpr int foo_3(int x) {
-  abu::base::check(abu::base::verify, x < 10);
+  abu::base::check(abu::base::verify, x <= expect_pass_val);
   return x;
 }
 
@@ -38,38 +42,40 @@ constexpr int wrapper() {
   return 0;
 }
 
+}
+
 template <auto Func, auto... Args>
 concept FailsConstexpr = requires {
   typename std::integral_constant<int, wrapper<Func, Args...>()>;
 };
 
-static_assert(FailsConstexpr<foo_1, 5>);
-static_assert(FailsConstexpr<foo_2, 5>);
-static_assert(FailsConstexpr<foo_3, 5>);
-static_assert(!FailsConstexpr<foo_1, 12>);
-static_assert(!FailsConstexpr<foo_2, 12>);
-static_assert(!FailsConstexpr<foo_3, 12>);
+static_assert(FailsConstexpr<foo_1, expect_pass_val>);
+static_assert(FailsConstexpr<foo_2, expect_pass_val>);
+static_assert(FailsConstexpr<foo_3, expect_pass_val>);
+static_assert(!FailsConstexpr<foo_1, expect_fail_val>);
+static_assert(!FailsConstexpr<foo_2, expect_fail_val>);
+static_assert(!FailsConstexpr<foo_3, expect_fail_val>);
 
 TEST(base, ignore) {
-  base::check(abu::base::ignore, true);
-  base::check(abu::base::ignore, true, "With a message");
-  base::check(abu::base::ignore, false, "With a message");
+  abu::base::check(abu::base::ignore, true);
+  abu::base::check(abu::base::ignore, true, "With a message");
+  abu::base::check(abu::base::ignore, false, "With a message");
 }
 
 TEST(base, assume) {
-  base::check(abu::base::assume, true);
-  base::check(abu::base::assume, true, "With a message");
+  abu::base::check(abu::base::assume, true);
+  abu::base::check(abu::base::assume, true, "With a message");
 
   // This is actually UB...
   // base::check(abu::base::ignore, false, "With a message");
 }
 
 TEST(base, verify) {
-  base::check(abu::base::verify, true);
-  base::check(abu::base::verify, "With a message");
+  abu::base::check(abu::base::verify, true);
+  abu::base::check(abu::base::verify, "With a message");
 
-  EXPECT_DEATH(base::check(abu::base::verify, false), "");
-  EXPECT_DEATH(base::check(abu::base::verify, false, "With a message"),
+  EXPECT_DEATH(abu::base::check(abu::base::verify, false), "");
+  EXPECT_DEATH(abu::base::check(abu::base::verify, false, "With a message"),
                "With a message");
   // Invoking base::assume<validated>(false) is UB
 }

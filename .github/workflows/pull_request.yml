@@ -1,0 +1,72 @@
+name: Pull Request Checks
+
+# Pipeline meant to run on pull-requests
+
+on: [pull_request]
+
+jobs:
+  # stage 1: smoke tests
+  # - Only depends on tools already available in the base image.
+  lint:
+    name: Code formatting
+    runs-on: ubuntu-20.04 
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Check clang-format
+      run: |
+        pwd
+        ls -la
+        find . -regex '.*\.\(cpp\|h\)'  -exec clang-format-12 -style=file -i -n -Werror {} +
+
+  basic-build:
+    name: Basic Build
+    runs-on: ubuntu-20.04 
+    env:
+      CC: clang-12
+      CXX: clang++-12
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest
+    
+  # stage 2: Static analysis
+  static-analysis:
+    needs: [lint, basic-build]
+    name: Static Analysis
+    runs-on: ubuntu-20.04
+    env:
+      CC: clang-12
+      CXX: clang++-12
+      
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install dependencies
+        run: |
+          apt install -y clang-tidy-12
+          update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-12 100
+
+      - name: Compute compile commands
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Check with clang-tidy
+        run: |
+          pwd
+          ls -la
+          find build/abu_header_checks -regex '.*\.\(cpp\)'
+          find src/ -regex '.*\.\(cpp\)'
+          find tests/ -regex '.*\.\(cpp\)'
+          find benchmark/ -regex '.*\.\(cpp\)'
+
+  # stage 3: Validation
+  # Static analysis
