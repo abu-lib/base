@@ -2,7 +2,6 @@
 Checks:          '-*,
                   clang-diagnostic-*,
                   clang-analyzer-*,
-                  clang-analyzer-*,
                   cppcoreguidelines-*,
                   '
 WarningsAsErrors: '*'
