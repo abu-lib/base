@@ -72,7 +72,7 @@ jobs:
           find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p build {} +
 
   # stage 3: Validation
-  build-and-test-ubuntu:
+  Ubuntu:
     needs: static-analysis
     runs-on: ubuntu-20.04 
     container: ghcr.io/abu-lib/smoke-test-env:1.0.0
@@ -90,7 +90,10 @@ jobs:
       - name: Set up GCC
         if: ${{ matrix.compiler.cc == 'gcc-11' }}
         run: |
+          sudo apt-get update -q
+          sudo apt-get install gnupg lsb-release software-properties-common -y
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt update -q
           sudo apt install -y g++-11
 
       - name: Configure CMake
