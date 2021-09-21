@@ -1,11 +1,11 @@
-name: Main CI
+name: Pull Request
 
 # Pipeline meant to run on pull-requests
 on: 
   workflow_dispatch: {}
   pull_request: {}
-  release:
-    types: [created]
+
+concurrency: pr-${{ github.base_ref }}
 
 jobs:
   # stage 1: smoke tests
