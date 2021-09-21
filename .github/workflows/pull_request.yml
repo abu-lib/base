@@ -86,6 +86,8 @@ jobs:
       CXX: ${{matrix.compiler.cxx}}
 
     steps:
+      - uses: actions/checkout@v2
+
       - name: Set up GCC
         if: ${{ matrix.compiler.cc == 'gcc-11' }}
         uses: egor-tensin/setup-gcc@v1
