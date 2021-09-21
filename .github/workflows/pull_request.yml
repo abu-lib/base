@@ -72,7 +72,7 @@ jobs:
           find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p build {} +
 
   # stage 3: Validation
-   build-and-test-ubuntu:
+  build-and-test-ubuntu:
     needs: static-analysis
     runs-on: ubuntu-20.04 
     container: ghcr.io/abu-lib/smoke-test-env:1.0.0
