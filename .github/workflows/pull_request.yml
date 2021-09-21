@@ -76,7 +76,7 @@ jobs:
 
   coverage:
     needs: [lint, basic-build]
-    name: Static Analysis
+    name: Coverage Report
     runs-on: ubuntu-20.04
     env:
       CC: clang-12
