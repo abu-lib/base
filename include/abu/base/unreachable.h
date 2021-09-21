@@ -29,7 +29,6 @@ namespace abu::base {
 
 #pragma clang diagnostic pop
 
-
 #elif defined(__GNUC__)
 
 [[noreturn]] inline void unreachable() noexcept __attribute__((always_inline));
