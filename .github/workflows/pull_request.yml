@@ -111,7 +111,7 @@ jobs:
 
     strategy:
       matrix:
-        compiler: [{cc: gcc-11, cxx: g++-11}, {cc: cc, cxx: c++}]
+        compiler: [{cc: gcc-11, cxx: g++-11}]
         build_type: [Debug, Release]
     
     name: "🍎 ${{matrix.compiler.cxx}} - ${{matrix.build_type}}" 
@@ -143,7 +143,7 @@ jobs:
         arch: [Win32, x64]
         build_type: [Debug, Release]
 
-    name: "💻 ${{matrix.compiler.cxx}} - ${{matrix.build_type}}" 
+    name: "💻 ${{matrix.toolset}} - ${{matrix.arch}} - ${{matrix.build_type}}" 
     
     env:
       CC: ${{matrix.compiler.cc}}

@@ -20,14 +20,18 @@ namespace abu::base {
 // Indicates that code cannot be reached.
 #ifdef _MSC_VER
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wlanguage-extension-token"
+#endif
 
 [[noreturn]] inline __forceinline void unreachable() noexcept {
   __assume(false);
 }
 
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
 #elif defined(__GNUC__)
 
