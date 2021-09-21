@@ -53,6 +53,7 @@ jobs:
 
       - name: install dependencies
         run: |
+          sudo apt update
           sudo apt install -y clang-tidy-12
           sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-12 100
 
