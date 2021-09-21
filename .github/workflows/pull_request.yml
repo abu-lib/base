@@ -69,7 +69,7 @@ jobs:
 
       - name: Check with clang-tidy
         run: |  
-          find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p bld {} +
+          find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p build {} +
 
   # stage 3: Validation
   # Static analysis
