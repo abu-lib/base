@@ -18,7 +18,6 @@
 constexpr int expect_pass_val = 5;
 constexpr int expect_fail_val = expect_pass_val + 1;
 
-
 namespace {
 
 constexpr int foo_1(int x) {
@@ -42,7 +41,7 @@ constexpr int wrapper() {
   return 0;
 }
 
-}
+}  // namespace
 
 template <auto Func, auto... Args>
 concept FailsConstexpr = requires {
