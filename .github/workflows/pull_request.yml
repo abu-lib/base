@@ -59,7 +59,7 @@ jobs:
           sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-12 100
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DABU_HEADER_CHECKS=ON -DABU_COVERAGE
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DABU_HEADER_CHECKS=ON
 
       - name: Normalize directory structure
         run: |
@@ -72,36 +72,36 @@ jobs:
         run: |  
           find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p build {} +
 
-  coverage:
-    needs: [lint, basic-build]
-    name: Coverage Report
-    runs-on: ubuntu-20.04
-    env:
-      CC: clang-12
-      CXX: clang++-12
+  # coverage:
+  #   needs: [lint, basic-build]
+  #   name: Coverage Report
+  #   runs-on: ubuntu-20.04
+  #   env:
+  #     CC: clang-12
+  #     CXX: clang++-12
 
-    steps:
-    - uses: actions/checkout@v2
+  #   steps:
+  #   - uses: actions/checkout@v2
 
-    - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DABU_HEADER_CHECKS=ON -DABU_COVERAGE=ON
+  #   - name: Configure CMake
+  #     run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DABU_HEADER_CHECKS=ON -DABU_COVERAGE=ON
 
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build
+  #   - name: Build
+  #     run: cmake --build ${{github.workspace}}/build
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run: ctest
+  #   - name: Test
+  #     working-directory: ${{github.workspace}}/build
+  #     run: ctest
 
-    - name: Build Coverage Report
-      run: cmake --build ${{github.workspace}}/build abu_coverage_report
+  #   - name: Build Coverage Report
+  #     run: cmake --build ${{github.workspace}}/build abu_coverage_report
 
-    - name: Archive code coverage results
-      uses: actions/upload-artifact@v2
-      with:
-        name: code-coverage-report
-        path: build/abu_coverage_report
-        if-no-files-found: error
+  #   - name: Archive code coverage results
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: code-coverage-report
+  #       path: build/abu_coverage_report
+  #       if-no-files-found: error
 
   # stage 3: Validation
   Ubuntu:
