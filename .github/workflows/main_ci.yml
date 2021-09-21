@@ -1,8 +1,11 @@
-name: Pull Request Checks
+name: Main CI
 
 # Pipeline meant to run on pull-requests
-
-on: [workflow_dispatch, pull_request]
+on: 
+  workflow_dispatch: {}
+  pull_request: {}
+  release:
+    types: [created]
 
 jobs:
   # stage 1: smoke tests
