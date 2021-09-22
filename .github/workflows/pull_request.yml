@@ -134,6 +134,13 @@ jobs:
       - name: Generate Coverage Report
         run: cmake --build ${{github.workspace}}/build --target abu_coverage_report
 
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: build/abu_coverage_report/html
+          if-no-files-found: error
+
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

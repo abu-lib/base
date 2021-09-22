@@ -89,8 +89,8 @@ TEST(base, verify) {
 
 TEST(base, source_location_placeholder) {
   auto loc = abu::base::details_::source_location_placeholder::current();
-  EXPECT_EQ(loc.line(), 0);
-  EXPECT_EQ(loc.column(), 0);
+  EXPECT_EQ(int(loc.line()), 0);
+  EXPECT_EQ(int(loc.column()), 0);
   EXPECT_EQ(loc.file_name(), "");
   EXPECT_EQ(loc.function_name(), "");
 }
