@@ -34,7 +34,7 @@ namespace abu::base::details_ {
             << function_name << ": " << msg << '\n';
 
 #ifdef ABU_COVERAGE
-  __gcov_flush();
+  //__gcov_flush();
 #endif
 
   std::abort();  // LCOV_EXCL_LINE
