@@ -77,7 +77,8 @@ jobs:
     name: Sonarqube
     runs-on: ubuntu-20.04
     env:
-      SONAR_SCANNER_VERSION: 4.4.0.2170
+      SONAR_SCANNER_VERSION: 4.6.2.2472
+      SONAR_SCANNER_SHA1: bcfc34fff31a92c9a2c35cac5dd231cd50403596
       SONAR_SERVER_URL: "https://sonarcloud.io"
       CC: gcc-11
       CXX: g++-11
@@ -116,6 +117,7 @@ jobs:
         run: |
           mkdir -p $HOME/.sonar
           curl -sSLo $HOME/.sonar/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }} 
+          echo "${{env.SONAR_SERVER_URL}} $HOME/.sonar/sonar-scanner.zip" | sha1sum -c
           unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
 
