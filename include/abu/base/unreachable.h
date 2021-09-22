@@ -38,7 +38,7 @@ namespace abu::base {
 [[noreturn]] inline void unreachable() noexcept __attribute__((always_inline));
 
 [[noreturn]] inline void unreachable() noexcept {
-  __builtin_unreachable();
+  __builtin_unreachable();  // LCOV_EXCL_LINE
 }
 #else
 [[noreturn]] inline void unreachable() noexcept {}

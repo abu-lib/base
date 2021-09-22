@@ -59,14 +59,22 @@ TEST(base, ignore) {
   abu::base::check(abu::base::ignore, true);
   abu::base::check(abu::base::ignore, true, "With a message");
   abu::base::check(abu::base::ignore, false, "With a message");
+  abu::base::check(abu::base::ignore,
+                   false,
+                   "With a message",
+                   abu::base::source_location::current());
 }
 
 TEST(base, assume) {
   abu::base::check(abu::base::assume, true);
   abu::base::check(abu::base::assume, true, "With a message");
+  abu::base::check(abu::base::assume,
+                   true,
+                   "With a message",
+                   abu::base::source_location::current());
 
   // This is actually UB...
-  // base::check(abu::base::ignore, false, "With a message");
+  // base::check(abu::base::assume, false, "With a message");
 }
 
 TEST(base, verify) {
@@ -77,4 +85,16 @@ TEST(base, verify) {
   EXPECT_DEATH(abu::base::check(abu::base::verify, false, "With a message"),
                "With a message");
   // Invoking base::assume<validated>(false) is UB
+}
+
+TEST(base, source_location_placeholder) {
+  auto loc = abu::base::details_::source_location_placeholder::current();
+  EXPECT_EQ(loc.line(), 0);
+  EXPECT_EQ(loc.column(), 0);
+  EXPECT_EQ(loc.file_name(), "");
+  EXPECT_EQ(loc.function_name(), "");
+}
+
+TEST(base, constexpr_failure_function_is_safe) {
+  abu::base::details_::constexpr_check_failure();
 }

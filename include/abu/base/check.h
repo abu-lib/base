@@ -50,18 +50,21 @@ inline void constexpr_check_failure() {
 constexpr void check(
     ignore_tag_t,
     bool condition,
-    std::string_view = "",
+    std::string_view = {},
     const source_location& = source_location::current()) noexcept {
+  // LCOV_EXCL_START
   if (std::is_constant_evaluated() && !condition) {
     details_::constexpr_check_failure();
   }
+  // LCOV_EXCL_STOP
 }
 
 constexpr void check(
     assume_tag_t,
     bool condition,
-    std::string_view = "",
+    std::string_view = {},
     const source_location& = source_location::current()) noexcept {
+  // LCOV_EXCL_START
   if (std::is_constant_evaluated() && !condition) {
     details_::constexpr_check_failure();
   }
@@ -69,16 +72,19 @@ constexpr void check(
   if (!condition) {
     unreachable();
   }
+  // LCOV_EXCL_STOP
 }
 
 constexpr void check(
     verify_tag_t,
     bool condition,
-    std::string_view msg = "",
+    std::string_view msg = {},
     const source_location& location = source_location::current()) noexcept {
+  // LCOV_EXCL_START
   if (std::is_constant_evaluated() && !condition) {
     details_::constexpr_check_failure();
   }
+  // LCOV_EXCL_STOP
 
   if (!condition) {
     details_::handle_failed_check(msg,

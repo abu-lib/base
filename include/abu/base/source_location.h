@@ -23,16 +23,14 @@
 
 namespace abu::base {
 
-#ifdef __cpp_lib_source_location
-using source_location = std::source_location;
-#else
-struct source_location {
+namespace details_ {
+struct source_location_placeholder {
   constexpr std::uint_least32_t line() const noexcept {
     return 0;
   }
   constexpr std::uint_least32_t column() const noexcept {
     return 0;
-  };
+  }
   constexpr const char* file_name() const noexcept {
     return "";
   }
@@ -40,10 +38,15 @@ struct source_location {
     return "";
   }
 
-  static constexpr source_location current() noexcept {
+  static constexpr source_location_placeholder current() noexcept {
     return {};
   }
 };
+}  // namespace details_
+#ifdef __cpp_lib_source_location
+using source_location = std::source_location;
+#else
+using source_location = details_::source_location_placeholder;
 #endif
 
 }  // namespace abu::base

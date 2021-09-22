@@ -17,6 +17,12 @@
 
 #include "abu/base.h"
 
+#ifdef ABU_COVERAGE
+extern "C" {
+void __gcov_flush();
+}
+#endif
+
 namespace abu::base::details_ {
 
 [[noreturn]] void handle_failed_check(std::string_view msg,
@@ -26,6 +32,11 @@ namespace abu::base::details_ {
                                       const char* function_name) noexcept {
   std::cerr << file_name << ":" << line << ":" << column << ": "
             << function_name << ": " << msg << '\n';
-  std::abort();
+
+#ifdef ABU_COVERAGE
+  __gcov_flush();
+#endif
+
+  std::abort();  // LCOV_EXCL_LINE
 }
 }  // namespace abu::base::details_
