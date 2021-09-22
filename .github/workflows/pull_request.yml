@@ -20,8 +20,8 @@ jobs:
         ls -la
         find . -regex '.*\.\(cpp\|h\)'  -exec clang-format-12 -style=file -i -n -Werror {} +
 
-  basic-build:
-    name: Basic Build
+  smoke-test:
+    name: Smoke Test
     runs-on: ubuntu-20.04 
     env:
       CC: clang-12
@@ -38,11 +38,11 @@ jobs:
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      run: ctest
+      run: ctest 
     
   # stage 2: Analysis
   static-analysis:
-    needs: [lint, basic-build]
+    needs: [lint, smoke-test]
     name: Static Analysis
     runs-on: ubuntu-20.04
     env:
@@ -129,11 +129,11 @@ jobs:
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
       - name: Test
         working-directory: ${{github.workspace}}/build
-        run: ctest
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
   
   Linux-Clang:
     needs: static-analysis
@@ -154,11 +154,11 @@ jobs:
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
       - name: Test
         working-directory: ${{github.workspace}}/build
-        run: ctest
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
         
   Mac-GCC:
     needs: static-analysis
@@ -181,11 +181,11 @@ jobs:
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
       - name: Test
         working-directory: ${{github.workspace}}/build
-        run: ctest
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
 
   Windows-MSBuild-Clang:
     needs: static-analysis
@@ -205,11 +205,11 @@ jobs:
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
       - name: Test
         working-directory: ${{github.workspace}}/build
-        run: ctest
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
 
 
   Windows-MSBuild-cl:
@@ -223,10 +223,6 @@ jobs:
         build_type: [Debug, Release]
 
     name: "💻 ${{matrix.toolset}} / ${{matrix.arch}} / ${{matrix.build_type}}" 
-    
-    env:
-      CC: ${{matrix.compiler.cc}}
-      CXX: ${{matrix.compiler.cxx}}
 
     steps:
       - uses: actions/checkout@v2
@@ -238,5 +234,5 @@ jobs:
         run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
       - name: Test
-        working-directory: ${{github.workspace}}/build --config ${{matrix.build_type}}
-        run: ctest
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
