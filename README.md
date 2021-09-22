@@ -1,6 +1,6 @@
 # Abu Base
 
-[![CI](https://github.com/abu-lib/base/actions/workflows/ci.yml/badge.svg)](https://github.com/abu-lib/base/actions/workflows/ci.yml)
+[![Main CI](https://github.com/abu-lib/base/actions/workflows/main_ci.yml/badge.svg)](https://github.com/abu-lib/base/actions/workflows/main_ci.yml)
 
 This is part of the [Abu](http://github.com/abu-lib/abu) meta-project.
 
