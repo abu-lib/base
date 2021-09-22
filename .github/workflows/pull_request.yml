@@ -131,7 +131,7 @@ jobs:
         run: ctest 
 
       - name: Generate Coverage Report
-        run: cmake --build ${{github.workspace}}/build abu_coverage_report
+        run: cmake --build ${{github.workspace}}/build --target abu_coverage_report
 
       - name: Run sonar-scanner
         env:

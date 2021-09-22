@@ -18,9 +18,7 @@
 #include "abu/base.h"
 
 #ifdef ABU_COVERAGE
-extern "C" {
-void __gcov_flush();
-}
+extern "C" void __gcov_flush();
 #endif
 
 namespace abu::base::details_ {
