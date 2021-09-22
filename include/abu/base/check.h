@@ -16,6 +16,7 @@
 #define ABU_BASE_CHECK_H_INCLUDED
 
 #include <string_view>
+#include <type_traits>
 
 #include "abu/base/source_location.h"
 #include "abu/base/unreachable.h"
@@ -49,10 +50,8 @@ constexpr void check(
     bool condition,
     std::string_view = "",
     const source_location& = source_location::current()) noexcept {
-  if (std::is_constant_evaluated()) {
-    if (!condition) {
-      details_::constexpr_check_failure();
-    }
+  if (std::is_constant_evaluated() && !condition) {
+    details_::constexpr_check_failure();
   }
 }
 
@@ -61,10 +60,8 @@ constexpr void check(
     bool condition,
     std::string_view = "",
     const source_location& = source_location::current()) noexcept {
-  if (std::is_constant_evaluated()) {
-    if (!condition) {
-      details_::constexpr_check_failure();
-    }
+  if (std::is_constant_evaluated() && !condition) {
+    details_::constexpr_check_failure();
   }
 
   if (!condition) {
@@ -77,10 +74,8 @@ constexpr void check(
     bool condition,
     std::string_view msg = "",
     const source_location& location = source_location::current()) noexcept {
-  if (std::is_constant_evaluated()) {
-    if (!condition) {
-      details_::constexpr_check_failure();
-    }
+  if (std::is_constant_evaluated() && !condition) {
+    details_::constexpr_check_failure();
   }
 
   if (!condition) {
