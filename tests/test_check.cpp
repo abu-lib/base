@@ -91,8 +91,8 @@ TEST(base, source_location_placeholder) {
   auto loc = abu::base::details_::source_location_placeholder::current();
   EXPECT_EQ(int(loc.line()), 0);
   EXPECT_EQ(int(loc.column()), 0);
-  EXPECT_EQ(loc.file_name(), "");
-  EXPECT_EQ(loc.function_name(), "");
+  EXPECT_EQ(loc.file_name(), std::string_view{});
+  EXPECT_EQ(loc.function_name(), std::string_view{});
 }
 
 TEST(base, constexpr_failure_function_is_safe) {

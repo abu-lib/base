@@ -117,8 +117,7 @@ jobs:
         run: |
           mkdir -p $HOME/.sonar
           curl -sSLo $HOME/.sonar/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }} 
-          echo "${{env.SONAR_SERVER_URL}} ~/.sonar/sonar-scanner.zip"
-          echo "${{env.SONAR_SERVER_URL}} ~/.sonar/sonar-scanner.zip" | sha1sum -c
+          echo "${{env.SONAR_SCANNER_SHA1}} ~/.sonar/sonar-scanner.zip" | sha1sum -c
           unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
 
@@ -133,7 +132,8 @@ jobs:
         run: ctest 
 
       - name: Generate Coverage Report
-        run: cmake --build ${{github.workspace}}/build --target abu_coverage_report
+        working-directory: ${{github.workspace}}/build
+        run: make abu_coverage_report
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
