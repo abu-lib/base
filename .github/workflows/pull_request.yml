@@ -98,12 +98,14 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
+
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Download and set up sonar-scanner
         env:
           SONAR_SCANNER_DOWNLOAD_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ env.SONAR_SCANNER_VERSION }}-linux.zip
@@ -112,6 +114,7 @@ jobs:
           curl -sSLo $HOME/.sonar/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }} 
           unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
+
       - name: Download and set up build-wrapper
         env:
           BUILD_WRAPPER_DOWNLOAD_URL: ${{ env.SONAR_SERVER_URL }}/static/cpp/build-wrapper-linux-x86.zip
@@ -119,11 +122,13 @@ jobs:
           curl -sSLo $HOME/.sonar/build-wrapper-linux-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
           unzip -o $HOME/.sonar/build-wrapper-linux-x86.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/build-wrapper-linux-x86" >> $GITHUB_PATH
+
       - name: Run build-wrapper
         run: |
           mkdir build
           cmake -S . -B build -DABU_HEADER_CHECKS=ON -DCMAKE_BUILD_TYPE=Debug -DABU_COVERAGE=ON
           build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} cmake --build build/ --config Debug 
+          
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -138,11 +143,12 @@ jobs:
     strategy:
       matrix:
         build_type: [Debug, Release]
+        gcc_version: [10, 11]
     
-    name: "🐧 gcc-11 - ${{matrix.build_type}}" 
+    name: "🐧 gcc-${{matrix.gcc_version}} - ${{matrix.build_type}}" 
     env:
-      CC: gcc-11
-      CXX: g++-11
+      CC: gcc-${{matrix.gcc_version}}
+      CXX: g++-${{matrix.gcc_version}}
 
     steps:
       - uses: actions/checkout@v2
@@ -150,7 +156,7 @@ jobs:
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
         with:
-          version: 11
+          version: ${{matrix.gcc_version}}
           platform: x64
 
       - name: Configure CMake
