@@ -78,7 +78,7 @@ function(abu_create_test_target)
     add_custom_target(abu_coverage_report
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       COMMAND 
-        gcovr -e .*gtest.* -e .*tests.* --sonarqube abu_coverage_report/sonarqube/coverage.xml --html abu_coverage_report/html/index.html --html-details -r ${CMAKE_SOURCE_DIR}
+        gcovr --gcov-executable gcov-11 -e .*gtest.* -e .*tests.* --sonarqube abu_coverage_report/sonarqube/coverage.xml --html abu_coverage_report/html/index.html --html-details -r ${CMAKE_SOURCE_DIR}
       COMMENT "Building coverage report"
     )
   endif()

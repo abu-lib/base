@@ -132,7 +132,7 @@ jobs:
 
       - name: Generate Coverage Report
         working-directory: ${{github.workspace}}/build
-        run: make abu_coverage_report
+        run: cmake --build ${{github.workspace}}/build --target abu_coverage_report
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
