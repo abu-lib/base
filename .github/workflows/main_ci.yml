@@ -1,0 +1,242 @@
+name: Main CI
+
+# Pipeline meant to run on pull-requests
+on: 
+  workflow_dispatch: {}
+  release:
+    types: [created]
+  push:
+    branches:
+      - main
+
+jobs:
+  # stage 1: smoke tests
+  # - Only depends on tools already available in the base image.
+  lint:
+    name: Code formatting
+    runs-on: ubuntu-20.04 
+    steps:
+    - uses: actions/checkout@v2
+      
+    - name: Check clang-format
+      run: |
+        pwd
+        ls -la
+        find . -regex '.*\.\(cpp\|h\)'  -exec clang-format-12 -style=file -i -n -Werror {} +
+
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-20.04 
+    env:
+      CC: clang-12
+      CXX: clang++-12
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DABU_HEADER_CHECKS=ON
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest 
+    
+  # stage 2: Analysis
+  static-analysis:
+    needs: [lint, smoke-test]
+    name: Static Analysis
+    runs-on: ubuntu-20.04
+    env:
+      CC: clang-12
+      CXX: clang++-12
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y clang-tidy-12
+          sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-12 100
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DABU_HEADER_CHECKS=ON
+
+      - name: Normalize directory structure
+        run: |
+          mkdir build/abu_header_checks 1>/dev/null 2>/dev/null || true
+          mkdir src 1>/dev/null 2>/dev/null  || true
+          mkdir tests 1>/dev/null 2>/dev/null  || true
+          mkdir benchmarks 1>/dev/null 2>/dev/null  || true
+
+      - name: Check with clang-tidy
+        run: |  
+          find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p build {} +
+
+  # coverage:
+  #   needs: [lint, basic-build]
+  #   name: Coverage Report
+  #   runs-on: ubuntu-20.04
+  #   env:
+  #     CC: clang-12
+  #     CXX: clang++-12
+
+  #   steps:
+  #   - uses: actions/checkout@v2
+
+  #   - name: Configure CMake
+  #     run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DABU_HEADER_CHECKS=ON -DABU_COVERAGE=ON
+
+  #   - name: Build
+  #     run: cmake --build ${{github.workspace}}/build
+
+  #   - name: Test
+  #     working-directory: ${{github.workspace}}/build
+  #     run: ctest
+
+  #   - name: Build Coverage Report
+  #     run: cmake --build ${{github.workspace}}/build abu_coverage_report
+
+  #   - name: Archive code coverage results
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: code-coverage-report
+  #       path: build/abu_coverage_report
+  #       if-no-files-found: error
+
+  # stage 3: Validation
+  Linux-GCC:
+    needs: static-analysis
+    runs-on: ubuntu-20.04 
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+    
+    name: "🐧 gcc-11 - ${{matrix.build_type}}" 
+    env:
+      CC: gcc-11
+      CXX: g++-11
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
+  
+  Linux-Clang:
+    needs: static-analysis
+    runs-on: ubuntu-20.04 
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+    
+    name: "🐧 clang-12 / ${{matrix.build_type}}" 
+    env:
+      CC: clang-12
+      CXX: clang++-12
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
+        
+  Mac-GCC:
+    needs: static-analysis
+    runs-on: macos-10.15
+
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+    
+    name: "🍎 gcc-11 / ${{matrix.build_type}}" 
+
+    env:
+      CC: gcc-11
+      CXX: g++-11
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
+
+  Windows-MSBuild-Clang:
+    needs: static-analysis
+    runs-on: windows-2019
+
+    strategy:
+      matrix:
+        arch: [Win32, x64]
+        build_type: [Debug, Release]
+
+    name: "💻 ClangCL / ${{matrix.arch}} / ${{matrix.build_type}}" 
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{matrix.build_type}} --output-on-failure
+
+
+  Windows-MSBuild-cl:
+    needs: static-analysis
+    runs-on: windows-2019
+
+    strategy:
+      matrix:
+        toolset: [host=x64, host=x86]
+        arch: [Win32, x64]
+        build_type: [Debug, Release]
+
+    name: "💻 ${{matrix.toolset}} / ${{matrix.arch}} / ${{matrix.build_type}}" 
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -T ${{matrix.toolset}} -A ${{matrix.arch}} -DCMAKE_BUILD_TYPE=Debug -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DABU_HEADER_CHECKS=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest -C ${{matrix.build_type}} --output-on-failure

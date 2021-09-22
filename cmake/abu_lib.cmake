@@ -4,6 +4,8 @@ SET(ABU_COVERAGE OFF CACHE BOOL "Creates coverage report from tests")
 SET(ABU_TEST_ALL OFF CACHE BOOL "Build all abu test targets")
 SET(ABU_HEADER_CHECKS OFF CACHE BOOL "Build abu header checks")
 
+set(abu_base_cmake_location ${CMAKE_CURRENT_LIST_DIR} CACHE INTERNAL "")
+
 function(abu_add_standard_compilation_flags_ TGT)
   if(MSVC)
     target_compile_options(${TGT} PRIVATE /WX /W4)
@@ -33,6 +35,7 @@ function(abu_fetch_gbench_if_needed_)
 endfunction()
 
 function(abu_fetch_gtest_if_needed_)
+
   if (NOT TARGET GTest::gtest_main)
     find_package(GTest 1.11 QUIET)
   endif()
@@ -78,35 +81,29 @@ function(abu_create_test_target)
     endif()
   endif()
 
-  target_link_libraries(${TEST_TGT} PRIVATE GTest::gtest_main)
+  target_link_libraries(${TEST_TGT} PRIVATE GTest::gtest GTest::gtest_main)
   abu_add_standard_compilation_flags_(${TEST_TGT})
   message(STATUS "registering test: ${TEST_TGT}" )
   add_test(${TEST_TGT} ${TEST_TGT})
 endfunction()
 
+# get_cmake_property(_variableNames VARIABLES)
+# list (SORT _variableNames)
+# foreach (_variableName ${_variableNames})
+#     message(STATUS "${_variableName}=${${_variableName}}")
+# endforeach()
 
 function(abu_create_header_check_target)
   cmake_parse_arguments(ABU_HCT "" "" "PUBLIC_HEADERS" ${ARGN})
   
-  # get_cmake_property(_variableNames VARIABLES)
-  # list (SORT _variableNames)
-  # foreach (_variableName ${_variableNames})
-  #     message(STATUS "${_variableName}=${${_variableName}}")
-  # endforeach()
-
-  file(WRITE version.cpp
-     "const char* getVersion() { return \"${MyProj_VERSION}\"; }"
-  )
-
   set(SRC "")
-  set(TMPL ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/header_check.cpp.in)
+  set(TMPL ${abu_base_cmake_location}/header_check.cpp.in)
     
   foreach(header ${ABU_HCT_PUBLIC_HEADERS})
-    configure_file(${TMPL} header_checks/${header}.cpp)
-    LIST(APPEND SRC header_checks/${header}.cpp)
+    configure_file(${TMPL} ${CMAKE_BINARY_DIR}/abu_header_checks/${header}.cpp)
+    LIST(APPEND SRC ${CMAKE_BINARY_DIR}/abu_header_checks/${header}.cpp)
   endforeach()
 
-  MESSAGE(STATUS ${SRC})
   add_library(${PROJECT_NAME}_header_checks ${SRC})
   abu_add_standard_compilation_flags_(${PROJECT_NAME}_header_checks)
   target_link_libraries(${PROJECT_NAME}_header_checks ${PROJECT_NAME})
@@ -115,7 +112,6 @@ endfunction()
 
 function(abu_add_library)
   cmake_parse_arguments(ABU_AL "" "" "SRC;DEPENDS;TESTS;BENCHMARKS;PUBLIC_HEADERS" ${ARGN})
-
 
   if(NOT DEFINED ${PROJECT_NAME}_master_project)
     if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -152,11 +148,12 @@ function(abu_add_library)
   list(APPEND CMAKE_MESSAGE_INDENT "  ")
 
   ###### Build the library targets proper:
-  if(ABU_AL_SRC)
+  if(ABU_AL_SRC)    
     set(mode PUBLIC)
     add_library(${lib} ${ABU_AL_SRC})
     add_library(${lib_c} ${ABU_AL_SRC})
     add_library(${lib_cr} ${ABU_AL_SRC})
+
     abu_add_standard_compilation_flags_(${lib})
     abu_add_standard_compilation_flags_(${lib_c})
     abu_add_standard_compilation_flags_(${lib_cr})
@@ -185,6 +182,11 @@ function(abu_add_library)
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
   )
+
+  # Add header checks if appropriate
+  if(ABU_AL_PUBLIC_HEADERS AND ABU_HEADER_CHECKS)
+    abu_create_header_check_target(PUBLIC_HEADERS ${ABU_AL_PUBLIC_HEADERS})
+  endif()
 
   ###### Deal with dependencies  
   set(dep_list "")
@@ -232,10 +234,7 @@ function(abu_add_library)
   target_link_libraries(${lib_c} ${mode} ${dep_list})
   target_link_libraries(${lib_cr} ${mode} ${dep_list_cr})
 
-  # Add header checks if appropriate
-  if(ABU_AL_PUBLIC_HEADERS AND ABU_HEADER_CHECKS)
-    abu_create_header_check_target(PUBLIC_HEADERS ${ABU_AL_PUBLIC_HEADERS})
-  endif()
+
 
   # Add the test target if appropriate
   if(ABU_AL_TESTS)

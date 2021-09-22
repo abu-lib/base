@@ -15,9 +15,10 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "abu/base/check.h"
+#include "abu/base.h"
 
 namespace abu::base::details_ {
+
 [[noreturn]] void handle_failed_check(std::string_view msg,
                                       std::uint_least32_t line,
                                       std::uint_least32_t column,

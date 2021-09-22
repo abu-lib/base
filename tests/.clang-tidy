@@ -1,0 +1,9 @@
+---
+Checks:          '-cppcoreguidelines-avoid-non-const-global-variables,
+                  -cppcoreguidelines-owning-memory,
+                  -cppcoreguidelines-avoid-goto,
+                  -cppcoreguidelines-pro-type-vararg,
+                  '
+InheritParentConfig: true
+...
+
