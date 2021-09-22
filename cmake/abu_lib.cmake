@@ -104,7 +104,6 @@ function(abu_create_header_check_target)
     LIST(APPEND SRC ${CMAKE_BINARY_DIR}/abu_header_checks/${header}.cpp)
   endforeach()
 
-  MESSAGE(STATUS ${SRC})
   add_library(${PROJECT_NAME}_header_checks ${SRC})
   abu_add_standard_compilation_flags_(${PROJECT_NAME}_header_checks)
   target_link_libraries(${PROJECT_NAME}_header_checks ${PROJECT_NAME})
