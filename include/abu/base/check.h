@@ -1,6 +1,6 @@
 // Copyright 2021 Francois Chabot
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -42,7 +42,9 @@ static constexpr assume_tag_t assume;
 static constexpr verify_tag_t verify;
 
 namespace details_ {
-inline void constexpr_check_failure() {}
+inline void constexpr_check_failure() {
+  // Invoking this function in constexpr code causes a usefull build error.
+}
 }  // namespace details_
 
 constexpr void check(
