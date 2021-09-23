@@ -1,11 +1,11 @@
 // Copyright 2021 Francois Chabot
-
-// Licensed under the Apache License, Version 2.0 (the "License");
+//
+// Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
-
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,10 @@
 
 #include "abu/base.h"
 
+#ifdef ABU_COVERAGE
+extern "C" void __gcov_dump();
+#endif
+
 namespace abu::base::details_ {
 
 [[noreturn]] void handle_failed_check(std::string_view msg,
@@ -26,6 +30,11 @@ namespace abu::base::details_ {
                                       const char* function_name) noexcept {
   std::cerr << file_name << ":" << line << ":" << column << ": "
             << function_name << ": " << msg << '\n';
-  std::abort();
+
+#ifdef ABU_COVERAGE
+  __gcov_dump();
+#endif
+
+  std::abort();  // LCOV_EXCL_LINE
 }
 }  // namespace abu::base::details_

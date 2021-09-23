@@ -68,17 +68,20 @@ function(abu_create_test_target)
   target_link_libraries(${TEST_TGT} PRIVATE ${ABU_CTT_LIB})
 
   if(ABU_COVERAGE)
-    target_compile_options(${TEST_TGT} PRIVATE -fprofile-arcs -ftest-coverage)
-    target_link_libraries(${TEST_TGT} PRIVATE gcov)
+    target_compile_options(${TEST_TGT} PRIVATE --coverage)
+    target_link_options(${TEST_TGT} PRIVATE --coverage)
 
     if (NOT TARGET abu_coverage_report)
-      file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/abu_coverage_report)
-      add_custom_target(abu_coverage_report
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-        COMMAND gcovr -e .*gtest.* -e .*tests.* --html --html-details -o abu_coverage_report/index.html -r ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR}
-        COMMENT "Building coverage report"
-      )
-    endif()
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/abu_coverage_report)
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/abu_coverage_report/html)
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/abu_coverage_report/sonarqube)
+    add_custom_target(abu_coverage_report
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      COMMAND 
+        gcovr --gcov-executable gcov-11 -e .*gtest.* -e .*tests.* --sonarqube abu_coverage_report/sonarqube/coverage.xml --html abu_coverage_report/html/index.html --html-details -r ${CMAKE_SOURCE_DIR}
+      COMMENT "Building coverage report"
+    )
+  endif()
   endif()
 
   target_link_libraries(${TEST_TGT} PRIVATE GTest::gtest GTest::gtest_main)
@@ -153,6 +156,15 @@ function(abu_add_library)
     add_library(${lib} ${ABU_AL_SRC})
     add_library(${lib_c} ${ABU_AL_SRC})
     add_library(${lib_cr} ${ABU_AL_SRC})
+
+    if(ABU_COVERAGE)
+      target_compile_options(${lib} PRIVATE --coverage)
+      target_compile_options(${lib_c} PRIVATE --coverage)
+      target_compile_options(${lib_cr} PRIVATE --coverage)
+      target_compile_definitions(${lib} PUBLIC ABU_COVERAGE)
+      target_compile_definitions(${lib_c} PUBLIC ABU_COVERAGE)
+      target_compile_definitions(${lib_cr} PUBLIC ABU_COVERAGE)
+    endif()
 
     abu_add_standard_compilation_flags_(${lib})
     abu_add_standard_compilation_flags_(${lib_c})

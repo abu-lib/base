@@ -41,9 +41,9 @@ jobs:
       run: ctest 
     
   # stage 2: Analysis
-  static-analysis:
+  clang-tidy:
     needs: [lint, smoke-test]
-    name: Static Analysis
+    name: Clang-tidy
     runs-on: ubuntu-20.04
     env:
       CC: clang-12
@@ -72,49 +72,95 @@ jobs:
         run: |  
           find build/abu_header_checks src tests benchmarks -regex '.*\.\(cpp\)' -exec clang-tidy -format-style=file -p build {} +
 
-  # coverage:
-  #   needs: [lint, basic-build]
-  #   name: Coverage Report
-  #   runs-on: ubuntu-20.04
-  #   env:
-  #     CC: clang-12
-  #     CXX: clang++-12
+  sonarqube:
+    needs: [lint, smoke-test]
+    name: Sonarqube
+    runs-on: ubuntu-20.04
+    env:
+      SONAR_SCANNER_VERSION: 4.6.2.2472
+      SONAR_SCANNER_SHA1: bcfc34fff31a92c9a2c35cac5dd231cd50403596
+      SONAR_SERVER_URL: "https://sonarcloud.io"
+      CC: gcc-11
+      CXX: g++-11
 
-  #   steps:
-  #   - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-  #   - name: Configure CMake
-  #     run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DABU_HEADER_CHECKS=ON -DABU_COVERAGE=ON
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 11
+          platform: x64
 
-  #   - name: Build
-  #     run: cmake --build ${{github.workspace}}/build
+      - name: install gcovr
+        run: |
+          sudo apt update
+          sudo apt install -y gcovr
 
-  #   - name: Test
-  #     working-directory: ${{github.workspace}}/build
-  #     run: ctest
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
 
-  #   - name: Build Coverage Report
-  #     run: cmake --build ${{github.workspace}}/build abu_coverage_report
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
-  #   - name: Archive code coverage results
-  #     uses: actions/upload-artifact@v2
-  #     with:
-  #       name: code-coverage-report
-  #       path: build/abu_coverage_report
-  #       if-no-files-found: error
+      - name: Download and set up sonar-scanner
+        env:
+          SONAR_SCANNER_DOWNLOAD_URL: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${{ env.SONAR_SCANNER_VERSION }}-linux.zip
+        run: |
+          mkdir -p $HOME/.sonar
+          curl -sSLo $HOME/.sonar/sonar-scanner.zip ${{ env.SONAR_SCANNER_DOWNLOAD_URL }} 
+          unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+          echo "$HOME/.sonar/sonar-scanner-${{ env.SONAR_SCANNER_VERSION }}-linux/bin" >> $GITHUB_PATH
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DABU_HEADER_CHECKS=ON -DABU_COVERAGE=ON
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest 
+
+      - name: Generate Coverage Report
+        working-directory: ${{github.workspace}}/build
+        run: cmake --build ${{github.workspace}}/build --target abu_coverage_report
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage-report
+          path: build/abu_coverage_report/html
+          if-no-files-found: error
+
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}"
 
   # stage 3: Validation
   Linux-GCC:
-    needs: static-analysis
+    needs: [clang-tidy, sonarqube]
     runs-on: ubuntu-20.04 
     strategy:
       matrix:
         build_type: [Debug, Release]
+        gcc_version: [10, 11]
     
-    name: "🐧 gcc-11 - ${{matrix.build_type}}" 
+    name: "🐧 gcc-${{matrix.gcc_version}} - ${{matrix.build_type}}" 
     env:
-      CC: gcc-11
-      CXX: g++-11
+      CC: gcc-${{matrix.gcc_version}}
+      CXX: g++-${{matrix.gcc_version}}
 
     steps:
       - uses: actions/checkout@v2
@@ -122,7 +168,7 @@ jobs:
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
         with:
-          version: 11
+          version: ${{matrix.gcc_version}}
           platform: x64
 
       - name: Configure CMake
@@ -136,7 +182,7 @@ jobs:
         run: ctest -C ${{matrix.build_type}} --output-on-failure
   
   Linux-Clang:
-    needs: static-analysis
+    needs: [clang-tidy, sonarqube]
     runs-on: ubuntu-20.04 
     strategy:
       matrix:
@@ -161,7 +207,7 @@ jobs:
         run: ctest -C ${{matrix.build_type}} --output-on-failure
         
   Mac-GCC:
-    needs: static-analysis
+    needs: [clang-tidy, sonarqube]
     runs-on: macos-10.15
 
     strategy:
@@ -188,7 +234,7 @@ jobs:
         run: ctest -C ${{matrix.build_type}} --output-on-failure
 
   Windows-MSBuild-Clang:
-    needs: static-analysis
+    needs: [clang-tidy, sonarqube]
     runs-on: windows-2019
 
     strategy:
@@ -213,7 +259,7 @@ jobs:
 
 
   Windows-MSBuild-cl:
-    needs: static-analysis
+    needs: [clang-tidy, sonarqube]
     runs-on: windows-2019
 
     strategy:
