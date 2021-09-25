@@ -10,5 +10,5 @@ sonar.cfamily.threads=2
 
 sonar.coverageReportPaths=build/abu_coverage_report/sonarqube/coverage.xml
 sonar.sourceEncoding=UTF-8
-sonar.sources=include, src
+sonar.sources=include, src, build/abu_header_checks
 sonar.tests=tests
