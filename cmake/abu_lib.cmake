@@ -14,7 +14,6 @@ function(abu_add_standard_compilation_flags_ TGT)
   endif()
 endfunction()
 
-
 function(abu_fetch_gbench_if_needed_)
   if (NOT TARGET benchmark::benchmark)
     find_package(benchmark 1.6 QUIET)
@@ -90,17 +89,11 @@ function(abu_create_test_target)
   add_test(${TEST_TGT} ${TEST_TGT})
 endfunction()
 
-# get_cmake_property(_variableNames VARIABLES)
-# list (SORT _variableNames)
-# foreach (_variableName ${_variableNames})
-#     message(STATUS "${_variableName}=${${_variableName}}")
-# endforeach()
-
 function(abu_create_header_check_target)
   cmake_parse_arguments(ABU_HCT "" "" "PUBLIC_HEADERS" ${ARGN})
   
   set(SRC "")
-  set(TMPL ${abu_base_cmake_location}/header_check.cpp.in)
+  set(TMPL ${abu_base_cmake_location}/templates/header_check.cpp.in)
     
   foreach(header ${ABU_HCT_PUBLIC_HEADERS})
     configure_file(${TMPL} ${CMAKE_BINARY_DIR}/abu_header_checks/${header}.cpp)
@@ -111,6 +104,45 @@ function(abu_create_header_check_target)
   abu_add_standard_compilation_flags_(${PROJECT_NAME}_header_checks)
   target_link_libraries(${PROJECT_NAME}_header_checks ${PROJECT_NAME})
 
+endfunction()
+
+function(abu_install_library_boilerplate)
+  
+string(REGEX MATCH "^abu_([^@]+)$" PROJECT_NAME_MATCH ${PROJECT_NAME})
+  if(NOT ${PROJECT_NAME_MATCH} STREQUAL ${PROJECT_NAME})
+    message(FATAL_ERROR "abu library projects should be named \"abu_[name]\", ${PROJECT_NAME} is not.")
+  endif()
+
+  set(LIB_NAME ${CMAKE_MATCH_1})
+
+  configure_file(
+    ${abu_base_cmake_location}/templates/sonar-project.properties.in 
+    ${CMAKE_CURRENT_SOURCE_DIR}/sonar-project.properties
+  )
+
+  configure_file(
+    ${abu_base_cmake_location}/templates/.clang-format.in 
+    ${CMAKE_CURRENT_SOURCE_DIR}/.clang-format
+    COPYONLY
+  )
+
+  configure_file(
+    ${abu_base_cmake_location}/templates/.clang-tidy.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/.clang-tidy
+    COPYONLY
+  )
+
+  configure_file(
+    ${abu_base_cmake_location}/templates/.github/workflows/main_ci.yml.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/.github/workflows/main_ci.yml
+    COPYONLY
+  )
+
+  configure_file(
+    ${abu_base_cmake_location}/templates/.github/workflows/pull_request.yml.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/.github/workflows/pull_request.yml
+    COPYONLY
+  )
 endfunction()
 
 function(abu_add_library)
@@ -245,8 +277,6 @@ function(abu_add_library)
   target_link_libraries(${lib} ${mode} ${dep_list})
   target_link_libraries(${lib_c} ${mode} ${dep_list})
   target_link_libraries(${lib_cr} ${mode} ${dep_list_cr})
-
-
 
   # Add the test target if appropriate
   if(ABU_AL_TESTS)

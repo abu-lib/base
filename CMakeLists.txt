@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
-project(abu_base VERSION 0.1.0)
+project(abu_base VERSION 0.1.1)
 
 # Include the utilities needed by dependant projects
 # This is not just for the sake of this file.
 # everything in that .cmake is meant to also be used by individual libraries.
 include(cmake/abu_lib.cmake)
 
+abu_install_library_boilerplate()
 enable_testing()
 
 # CPP support library.
