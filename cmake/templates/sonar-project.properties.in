@@ -1,8 +1,8 @@
-sonar.projectKey=abu-lib_base
+sonar.projectKey=abu-lib_@LIB_NAME@
 sonar.organization=abu-lib
 
-sonar.projectName=abu_base
-sonar.projectVersion=0.1.1
+sonar.projectName=abu_@LIB_NAME@
+sonar.projectVersion=@PROJECT_VERSION@
 
 sonar.cfamily.compile-commands=build/compile_commands.json
 sonar.cfamily.cache.enabled=false
