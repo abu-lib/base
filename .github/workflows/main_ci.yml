@@ -145,6 +145,13 @@ jobs:
           path: build/abu_coverage_report/html
           if-no-files-found: error
 
+      - name: Normalize directory structure
+        run: |
+          mkdir build/abu_header_checks 1>/dev/null 2>/dev/null || true
+          mkdir src 1>/dev/null 2>/dev/null  || true
+          mkdir tests 1>/dev/null 2>/dev/null  || true
+          mkdir benchmarks 1>/dev/null 2>/dev/null  || true
+          
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
