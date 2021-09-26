@@ -12,3 +12,5 @@ sonar.coverageReportPaths=build/abu_coverage_report/sonarqube/coverage.xml
 sonar.sourceEncoding=UTF-8
 sonar.sources=include, src, build/abu_header_checks
 sonar.tests=tests
+
+sonar.scm.exclusions.disabled=true
