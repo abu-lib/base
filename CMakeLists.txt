@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(abu_base VERSION 0.1.3)
+project(abu_base VERSION 0.1.4)
 
 # Include the utilities needed by dependant projects
 # This is not just for the sake of this file.
